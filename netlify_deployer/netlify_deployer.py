@@ -1,11 +1,28 @@
 #!/usr/bin/python3
 
+import argparse
 import json
 import os
 import requests
 import sys
 import hashlib
 import time
+
+def setupParser():
+    parser = argparse.ArgumentParser(
+        description='Program to help deploy to Netlify.')
+    # TODO: Positional arguments? figure out how user will use and if need compatible with old versions
+    parser.add_argument('site-id',
+                        help='Netlify site ID to deploy to.')
+    parser.add_argument('--deploy-directory',
+                        help='Directory to deploy from.')
+    # TODO: Default to master branch?
+    parser.add_argument('--branch',
+                        help='Branch to deploy to. Deploy to "master"'
+                             'for a new deploy, deploy to any other branch for'
+                             'a preview.')
+    # TODO: For branch previews, needs exisiting deployment id argument
+    return parser
 
 def checkArguments():
     if len(sys.argv) != 4 and len(sys.argv) != 5:
@@ -26,7 +43,7 @@ def getDirectoryToDeploy():
     return os.path.abspath(sys.argv[3])
 
 def getSiteId():
-    return sys.argv[2]
+    return args.site_id
 
 def validateDirectoryStructure():
     print('Validating structure...', end="")
@@ -66,7 +83,7 @@ def calculateHashesForPaths(paths):
 
 
 def getBranchName():
-    return sys.argv[1]
+    return args.branch
 
 
 def createDeployment(file_hashes):
@@ -111,6 +128,8 @@ def uploadFilesForHashes(files_for_hashes, required_hashes):
             else:
                 print('OK')
 
+
+args = setupParser().parse_args()
 checkArguments()
 auth_token = getAuthToken()
 site_id = getSiteId()
